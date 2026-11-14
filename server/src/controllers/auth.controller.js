@@ -1,5 +1,9 @@
-import { registerUser, loginUser } from '../services/auth.service.js';
-import { setRefreshTokenCookie, clearRefreshTokenCookie } from '../utils/authCookies.js';
+import { registerUser, loginUser, refreshUserSession } from '../services/auth.service.js';
+import {
+  REFRESH_COOKIE_NAME,
+  setRefreshTokenCookie,
+  clearRefreshTokenCookie,
+} from '../utils/authCookies.js';
 
 // Express 5 forwards rejected promises to the error handler automatically.
 export const register = async (req, res) => {
@@ -30,6 +34,32 @@ export const login = async (req, res) => {
       accessTokenExpiresAt: accessToken.expiresAt.toISOString(),
     },
   });
+};
+
+export const refresh = async (req, res) => {
+  const rawRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+
+  try {
+    const { user, accessToken, refreshToken } = await refreshUserSession(rawRefreshToken);
+
+    setRefreshTokenCookie(res, refreshToken.token, refreshToken.expiresAt);
+    res.set('Cache-Control', 'no-store');
+
+    res.status(200).json({
+      success: true,
+      message: 'Session refreshed successfully',
+      data: {
+        user,
+        accessToken: accessToken.token,
+        accessTokenExpiresAt: accessToken.expiresAt.toISOString(),
+      },
+    });
+  } catch (err) {
+    if (err?.statusCode === 401) {
+      clearRefreshTokenCookie(res);
+    }
+    throw err;
+  }
 };
 
 export const getMe = (req, res) => {

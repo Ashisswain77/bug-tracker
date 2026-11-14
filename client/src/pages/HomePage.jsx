@@ -1,5 +1,6 @@
 import { Bug, Activity, CircleCheck, CircleAlert, Loader2 } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth.js'
+import { useAuth } from '@/context/AuthContext.jsx'
 
 function ApiStatus() {
   const { data, isLoading, isError } = useHealth()
@@ -28,6 +29,8 @@ function ApiStatus() {
 }
 
 export default function HomePage() {
+  const { user } = useAuth()
+
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 py-24 text-center">
       <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 shadow-lg shadow-indigo-500/5">
@@ -35,6 +38,11 @@ export default function HomePage() {
       </div>
 
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Bug Tracker</h1>
+      {user?.name && (
+        <p className="mt-2 text-sm font-medium text-indigo-400">
+          Welcome back, {user.name}
+        </p>
+      )}
       <p className="mt-4 max-w-xl text-balance text-zinc-400">
         Plan, track, and resolve issues across your projects. A focused workspace for modern
         engineering teams.
@@ -47,4 +55,3 @@ export default function HomePage() {
     </section>
   )
 }
-

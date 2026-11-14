@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 import User, { SALT_ROUNDS } from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
-import { signAccessToken, signRefreshToken } from './token.service.js';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from './token.service.js';
 
 const DUPLICATE_KEY = 11000;
+const OBJECT_ID_REGEX = /^[a-f\d]{24}$/i;
 
 // Hash of a random value, used to spend the same bcrypt time when an email is
 // not registered — prevents discovering accounts via response timing.
@@ -52,6 +54,44 @@ export const loginUser = async ({ email, password }) => {
 
   if (!(await user.comparePassword(password))) {
     throw invalidCredentials();
+  }
+
+  return {
+    user: user.toJSON(),
+    accessToken: signAccessToken(user.id),
+    refreshToken: signRefreshToken(user.id),
+  };
+};
+
+/**
+ * Verifies the HttpOnly refresh token cookie, loads the user, and rotates the token pair.
+ * @returns {Promise<{ user: object, accessToken: {token, expiresAt}, refreshToken: {token, expiresAt} }>}
+ */
+export const refreshUserSession = async (rawRefreshToken) => {
+  if (!rawRefreshToken || typeof rawRefreshToken !== 'string') {
+    throw new ApiError(401, 'Refresh token required', undefined, { code: 'REFRESH_REQUIRED' });
+  }
+
+  let payload;
+  try {
+    payload = verifyRefreshToken(rawRefreshToken);
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      throw new ApiError(401, 'Refresh token has expired', undefined, { code: 'REFRESH_EXPIRED' });
+    }
+    if (err instanceof jwt.JsonWebTokenError) {
+      throw new ApiError(401, 'Invalid refresh token', undefined, { code: 'REFRESH_INVALID' });
+    }
+    throw err;
+  }
+
+  if (typeof payload.sub !== 'string' || !OBJECT_ID_REGEX.test(payload.sub)) {
+    throw new ApiError(401, 'Invalid refresh token', undefined, { code: 'REFRESH_INVALID' });
+  }
+
+  const user = await User.findById(payload.sub);
+  if (!user) {
+    throw new ApiError(401, 'User no longer exists', undefined, { code: 'USER_NOT_FOUND' });
   }
 
   return {

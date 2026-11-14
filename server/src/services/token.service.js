@@ -49,3 +49,20 @@ export const verifyAccessToken = (token) => {
   return payload;
 };
 
+/**
+ * Verifies a refresh token against JWT_REFRESH_SECRET, algorithm, issuer,
+ * audience, expiry, and `type === 'refresh'`.
+ * @returns {object} decoded payload
+ */
+export const verifyRefreshToken = (token) => {
+  const payload = jwt.verify(token, env.jwtRefreshSecret, {
+    algorithms: [TOKEN_ALGORITHM],
+    issuer: TOKEN_ISSUER,
+    audience: TOKEN_AUDIENCE,
+  });
+  if (payload.type !== 'refresh') {
+    throw new jwt.JsonWebTokenError('invalid token type');
+  }
+  return payload;
+};
+
