@@ -12,3 +12,26 @@ export const validate = (validator) => (req, _res, next) => {
   next();
 };
 
+/**
+ * Runs a validator `(query) => ({ errors, value })` against req.query.
+ * In Express 5 `req.query` is a getter, so the sanitized value is attached
+ * to `req.validatedQuery`.
+ */
+export const validateQuery = (validator) => (req, _res, next) => {
+  const { errors, value } = validator(req.query ?? {});
+  if (errors) return next(new ApiError(400, 'Validation failed', errors));
+  req.validatedQuery = value;
+  next();
+};
+
+/**
+ * Runs a validator `(params) => ({ errors, value })` against req.params.
+ * The sanitized value is attached to `req.validatedParams`, mirroring
+ * `validateQuery`.
+ */
+export const validateParams = (validator) => (req, _res, next) => {
+  const { errors, value } = validator(req.params ?? {});
+  if (errors) return next(new ApiError(400, 'Validation failed', errors));
+  req.validatedParams = value;
+  next();
+};
