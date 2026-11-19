@@ -1,4 +1,5 @@
-import { Bug, Activity, CircleCheck, CircleAlert, Loader2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, Bug, Activity, CircleCheck, CircleAlert, FolderKanban, Loader2 } from 'lucide-react'
 import { useHealth } from '@/hooks/useHealth.js'
 import { useAuth } from '@/context/AuthContext.jsx'
 
@@ -47,6 +48,17 @@ export default function HomePage() {
         Plan, track, and resolve issues across your projects. A focused workspace for modern
         engineering teams.
       </p>
+
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          to="/projects"
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2.5 text-xs font-medium text-white shadow-sm shadow-indigo-500/20 transition hover:bg-indigo-400"
+        >
+          <FolderKanban className="h-4 w-4" aria-hidden="true" />
+          <span>Open My Projects</span>
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </Link>
+      </div>
 
       <div className="mt-8 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-4 py-1.5 text-xs">
         <Activity className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />

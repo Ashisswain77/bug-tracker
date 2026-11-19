@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bug, Loader2, LogOut } from 'lucide-react'
+import { Bug, FolderKanban, Loader2, LogOut } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext.jsx'
 
 export default function MainLayout() {
@@ -19,16 +19,35 @@ export default function MainLayout() {
     }
   }
 
+  const isProjectsActive = pathname.startsWith('/projects')
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2 transition hover:opacity-90">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500/15 text-indigo-400">
-              <Bug className="h-4 w-4" aria-hidden="true" />
-            </div>
-            <span className="text-sm font-semibold tracking-tight">Bug Tracker</span>
-          </Link>
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-6">
+            <Link to="/" className="flex items-center gap-2 transition hover:opacity-90">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500/15 text-indigo-400">
+                <Bug className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <span className="text-sm font-semibold tracking-tight">Bug Tracker</span>
+            </Link>
+
+            {!isLoading && isAuthenticated && (
+              <Link
+                to="/projects"
+                aria-current={isProjectsActive ? 'page' : undefined}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition ${
+                  isProjectsActive
+                    ? 'bg-zinc-900 text-zinc-100'
+                    : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-200'
+                }`}
+              >
+                <FolderKanban className="h-3.5 w-3.5 text-indigo-400" aria-hidden="true" />
+                <span>Projects</span>
+              </Link>
+            )}
+          </div>
 
           {!isLoading && (
             <nav className="flex items-center gap-2.5">
